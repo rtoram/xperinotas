@@ -2,14 +2,16 @@
 document.addEventListener("DOMContentLoaded", loadNotes);
 
 function addNote() {
+    const noteTitle = document.getElementById("noteTitle").value.trim();
     const noteText = document.getElementById("noteText").value.trim();
-    if (noteText === "") return;
+    if (noteTitle === "" || noteText === "") return; // Exige título e conteúdo
 
     const notes = getNotes();
-    notes.push(noteText);
+    notes.push({ title: noteTitle, content: noteText });
     saveNotes(notes);
     renderNotes();
-    document.getElementById("noteText").value = ""; // Limpar o campo
+    document.getElementById("noteTitle").value = ""; // Limpar campos
+    document.getElementById("noteText").value = "";
 }
 
 function deleteNote(index) {
@@ -36,7 +38,8 @@ function renderNotes() {
         const noteElement = document.createElement("div");
         noteElement.classList.add("note");
         noteElement.innerHTML = `
-            <p>${note}</p>
+            <h3>${note.title}</h3>
+            <p>${note.content}</p>
             <button onclick="deleteNote(${index})">Excluir</button>
         `;
         notesContainer.appendChild(noteElement);
