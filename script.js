@@ -1,140 +1,201 @@
-// Carregar notas ao iniciar
-document.addEventListener("DOMContentLoaded", loadNotes);
-
-let selectedColor = "#ffffff";
-const colors = [
-    "#ffffff", "#f5f5f5", "#ffebee", "#fff3e0", "#f9fbe7",
-    "#e8f5e9", "#e3f2fd", "#ede7f6", "#fce4ec", "#e0f7fa"
-];
-
-function addNote() {
-    const noteTitle = document.getElementById("noteTitle").value.trim();
-    const noteText = document.getElementById("noteText").value.trim();
-    if (noteTitle === "" || noteText === "") return;
-
-    const notes = getNotes();
-    notes.push({
-        title: noteTitle,
-        content: noteText,
-        color: selectedColor,
-        archived: false,
-        reminder: null,
-        image: null,
-        tags: []
-    });
-    saveNotes(notes);
-    renderNotes();
-    resetInputs();
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f5f5f5;
+    color: #333;
 }
 
-function deleteNote(index) {
-    const notes = getNotes();
-    notes.splice(index, 1);
-    saveNotes(notes);
-    renderNotes();
+.container {
+    max-width: 900px;
+    margin: 0 auto;
 }
 
-function archiveNote(index) {
-    const notes = getNotes();
-    notes[index].archived = true;
-    saveNotes(notes);
-    renderNotes();
+h1 {
+    text-align: center;
+    font-size: 2em;
+    color: #444;
+    margin-bottom: 30px;
 }
 
-function addReminder(index) {
-    const reminder = prompt("Digite a data do lembrete (ex.: 2025-03-25):");
-    if (reminder) {
-        const notes = getNotes();
-        notes[index].reminder = reminder;
-        saveNotes(notes);
-        renderNotes();
-    }
+.note-input {
+    background-color: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-bottom: 40px; /* Mais espaço entre o formulário e as notas */
+    position: sticky;
+    top: 20px;
+    z-index: 10;
 }
 
-function addImage(input) {
-    const file = input.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const notes = getNotes();
-            const lastNote = notes[notes.length - 1] || { title: "Nova Nota", content: "", color: "#ffffff", archived: false, reminder: null, image: null, tags: [] };
-            lastNote.image = e.target.result;
-            if (!notes.includes(lastNote)) notes.push(lastNote);
-            saveNotes(notes);
-            renderNotes();
-        };
-        reader.readAsDataURL(file);
-    }
+#noteTitle {
+    width: 100%;
+    padding: 10px;
+    font-size: 1.1em;
+    border: none;
+    border-bottom: 2px solid #ddd;
+    margin-bottom: 10px;
+    outline: none;
+    background: transparent;
 }
 
-function addTag(index) {
-    const tag = prompt("Digite um marcador:");
-    if (tag) {
-        const notes = getNotes();
-        notes[index].tags.push(tag);
-        saveNotes(notes);
-        renderNotes();
-    }
+textarea {
+    width: 100%;
+    height: 100px;
+    padding: 10px;
+    font-size: 1em;
+    border: none;
+    border-radius: 4px;
+    resize: vertical;
+    outline: none;
+    background: transparent;
 }
 
-function showColorPicker() {
-    const picker = document.getElementById("colorPicker");
-    picker.innerHTML = "";
-    colors.forEach(color => {
-        const div = document.createElement("div");
-        div.className = "color-option";
-        div.style.backgroundColor = color;
-        div.onclick = () => {
-            selectedColor = color;
-            picker.classList.add("hidden");
-        };
-        picker.appendChild(div);
-    });
-    picker.classList.toggle("hidden");
+.note-input button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
-function getNotes() {
-    return JSON.parse(localStorage.getItem("notes") || "[]");
+.note-input button:hover {
+    background-color: #45a049;
 }
 
-function saveNotes(notes) {
-    localStorage.setItem("notes", JSON.stringify(notes));
+.notes-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
 }
 
-function renderNotes() {
-    const notesContainer = document.getElementById("notesContainer");
-    notesContainer.innerHTML = "";
-    const notes = getNotes();
-
-    notes.forEach((note, index) => {
-        if (note.archived) return; // Não exibir notas arquivadas
-        const noteElement = document.createElement("div");
-        noteElement.classList.add("note");
-        noteElement.style.backgroundColor = note.color;
-        noteElement.innerHTML = `
-            <h3>${note.title}</h3>
-            <p>${note.content}</p>
-            ${note.image ? `<img src="${note.image}" alt="Imagem da nota">` : ""}
-            ${note.reminder ? `<p><i class="fas fa-bell"></i> Lembrete: ${note.reminder}</p>` : ""}
-            ${note.tags.length ? `<p class="tags"><i class="fas fa-tag"></i> ${note.tags.join(", ")}</p>` : ""}
-            <button onclick="deleteNote(${index})"><i class="fas fa-trash"></i></button>
-            <div class="note-actions">
-                <button onclick="archiveNote(${index})" title="Arquivar"><i class="fas fa-archive"></i></button>
-                <button onclick="addReminder(${index})" title="Lembrete"><i class="fas fa-bell"></i></button>
-                <button onclick="addTag(${index})" title="Marcador"><i class="fas fa-tag"></i></button>
-            </div>
-        `;
-        notesContainer.appendChild(noteElement);
-    });
+.note {
+    background-color: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: relative;
+    transition: transform 0.2s;
 }
 
-function resetInputs() {
-    document.getElementById("noteTitle").value = "";
-    document.getElementById("noteText").value = "";
-    document.getElementById("imageInput").value = "";
-    selectedColor = "#ffffff";
+.note:hover {
+    transform: translateY(-2px);
 }
 
-function loadNotes() {
-    renderNotes();
+.note h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.2em;
+    color: #333;
+}
+
+.note p {
+    margin: 0 0 10px 0;
+    font-size: 0.95em;
+    color: #555;
+}
+
+.note a {
+    color: #1e90ff;
+    text-decoration: underline;
+}
+
+.note img {
+    max-width: 100%;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+.note .tags {
+    font-size: 0.85em;
+    color: #888;
+    margin-top: 10px;
+}
+
+.note-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.note:hover .note-actions {
+    opacity: 1;
+}
+
+.note-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1em;
+    color: #666;
+    padding: 5px;
+}
+
+.note-actions button:hover {
+    color: #333;
+}
+
+.dropdown {
+    position: relative;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    z-index: 1;
+}
+
+.dropdown-content button {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    text-align: left;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #333;
+}
+
+.dropdown-content button:hover {
+    background-color: #f0f0f0;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.color-picker {
+    display: none;
+    position: absolute;
+    background: white;
+    padding: 10px;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.color-option {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-block;
+    margin: 2px;
+    cursor: pointer;
+    border: 2px solid #fff;
+}
+
+.color-option:hover {
+    border-color: #888;
 }
