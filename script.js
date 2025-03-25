@@ -1,201 +1,201 @@
-body {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
-    background-color: #f5f5f5;
-    color: #333;
+// Carregar notas ao iniciar
+document.addEventListener("DOMContentLoaded", loadNotes);
+
+const colors = [
+    "#ffffff", "#f5f5f5", "#ffebee", "#fff3e0", "#f9fbe7",
+    "#e8f5e9", "#e3f2fd", "#ede7f6", "#fce4ec", "#e0f7fa"
+];
+
+// Adicionar uma nova nota
+function addNote() {
+    const noteTitle = document.getElementById("noteTitle").value.trim();
+    const noteText = document.getElementById("noteText").value.trim();
+
+    // Verificar se há conteúdo para adicionar
+    if (!noteText && !noteTitle) {
+        console.log("Nenhum conteúdo para adicionar.");
+        return;
+    }
+
+    const notes = getNotes();
+    const newNote = {
+        title: noteTitle || "Sem título",
+        content: noteText || "",
+        color: "#ffffff",
+        archived: false,
+        reminder: null,
+        image: null,
+        tags: []
+    };
+    notes.push(newNote);
+    saveNotes(notes);
+    renderNotes();
+    resetInputs();
+    console.log("Nota adicionada:", newNote); // Debug
 }
 
-.container {
-    max-width: 900px;
-    margin: 0 auto;
+// Excluir nota
+function deleteNote(index) {
+    const notes = getNotes();
+    notes.splice(index, 1);
+    saveNotes(notes);
+    renderNotes();
+    console.log("Nota excluída no índice:", index); // Debug
 }
 
-h1 {
-    text-align: center;
-    font-size: 2em;
-    color: #444;
-    margin-bottom: 30px;
+// Arquivar nota
+function archiveNote(index) {
+    const notes = getNotes();
+    notes[index].archived = true;
+    saveNotes(notes);
+    renderNotes();
+    console.log("Nota arquivada:", index); // Debug
 }
 
-.note-input {
-    background-color: white;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    margin-bottom: 40px; /* Mais espaço entre o formulário e as notas */
-    position: sticky;
-    top: 20px;
-    z-index: 10;
+// Adicionar lembrete
+function addReminder(index) {
+    const reminder = prompt("Digite a data do lembrete (ex.: 2025-03-25):");
+    if (reminder) {
+        const notes = getNotes();
+        notes[index].reminder = reminder;
+        saveNotes(notes);
+        renderNotes();
+        console.log("Lembrete adicionado:", reminder, "no índice:", index); // Debug
+    }
 }
 
-#noteTitle {
-    width: 100%;
-    padding: 10px;
-    font-size: 1.1em;
-    border: none;
-    border-bottom: 2px solid #ddd;
-    margin-bottom: 10px;
-    outline: none;
-    background: transparent;
+// Adicionar imagem
+function addImage(index, input) {
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const notes = getNotes();
+            notes[index].image = e.target.result;
+            saveNotes(notes);
+            renderNotes();
+            console.log("Imagem adicionada no índice:", index); // Debug
+        };
+        reader.readAsDataURL(file);
+    }
 }
 
-textarea {
-    width: 100%;
-    height: 100px;
-    padding: 10px;
-    font-size: 1em;
-    border: none;
-    border-radius: 4px;
-    resize: vertical;
-    outline: none;
-    background: transparent;
+// Adicionar marcador
+function addTag(index) {
+    const tag = prompt("Digite um marcador:");
+    if (tag) {
+        const notes = getNotes();
+        notes[index].tags.push(tag);
+        saveNotes(notes);
+        renderNotes();
+        console.log("Marcador adicionado:", tag, "no índice:", index); // Debug
+    }
 }
 
-.note-input button {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1em;
-    margin-top: 10px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
+// Mudar cor
+function changeColor(index, color) {
+    const notes = getNotes();
+    notes[index].color = color;
+    saveNotes(notes);
+    renderNotes();
+    console.log("Cor alterada para:", color, "no índice:", index); // Debug
 }
 
-.note-input button:hover {
-    background-color: #45a049;
+// Copiar para Google Docs (simulado)
+function copyToGoogleDocs(index) {
+    const notes = getNotes();
+    const note = notes[index];
+    const text = `${note.title}\n\n${note.content}`;
+    navigator.clipboard.writeText(text);
+    alert("Conteúdo copiado para a área de transferência! Cole em um Google Docs.");
+    console.log("Nota copiada para área de transferência:", index); // Debug
 }
 
-.notes-section {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 15px;
+// Exibir seletor de cores
+function showColorPicker(index, button) {
+    const existingPicker = button.parentElement.querySelector(".color-picker");
+    if (existingPicker) existingPicker.remove(); // Remove picker anterior
+
+    const picker = document.createElement("div");
+    picker.className = "color-picker";
+    colors.forEach(color => {
+        const div = document.createElement("div");
+        div.className = "color-option";
+        div.style.backgroundColor = color;
+        div.onclick = () => {
+            changeColor(index, color);
+            picker.remove();
+        };
+        picker.appendChild(div);
+    });
+    button.parentElement.appendChild(picker);
+    console.log("Seletor de cores exibido para índice:", index); // Debug
 }
 
-.note {
-    background-color: white;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    position: relative;
-    transition: transform 0.2s;
+// Obter notas do localStorage
+function getNotes() {
+    return JSON.parse(localStorage.getItem("notes") || "[]");
 }
 
-.note:hover {
-    transform: translateY(-2px);
+// Salvar notas no localStorage
+function saveNotes(notes) {
+    localStorage.setItem("notes", JSON.stringify(notes));
 }
 
-.note h3 {
-    margin: 0 0 10px 0;
-    font-size: 1.2em;
-    color: #333;
+// Renderizar notas
+function renderNotes() {
+    const notesContainer = document.getElementById("notesContainer");
+    notesContainer.innerHTML = "";
+    const notes = getNotes();
+
+    notes.forEach((note, index) => {
+        if (note.archived) return; // Não exibir notas arquivadas
+
+        const noteElement = document.createElement("div");
+        noteElement.classList.add("note");
+        noteElement.style.backgroundColor = note.color;
+
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        const contentWithLinks = note.content.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
+
+        noteElement.innerHTML = `
+            <h3>${note.title}</h3>
+            <p>${contentWithLinks}</p>
+            ${note.image ? `<img src="${note.image}" alt="Imagem da nota">` : ""}
+            ${note.reminder ? `<p><i class="fas fa-bell"></i> Lembrete: ${note.reminder}</p>` : ""}
+            ${note.tags.length ? `<p class="tags"><i class="fas fa-tag"></i> ${note.tags.join(", ")}</p>` : ""}
+            <div class="note-actions">
+                <button onclick="archiveNote(${index})" title="Arquivar"><i class="fas fa-archive"></i></button>
+                <button onclick="addReminder(${index})" title="Lembrete"><i class="fas fa-bell"></i></button>
+                <button title="Adicionar Imagem"><i class="fas fa-image"></i><input type="file" accept="image/*" onchange="addImage(${index}, this)" style="display:none;"></button>
+                <button onclick="showColorPicker(${index}, this)" title="Cor de Fundo"><i class="fas fa-palette"></i></button>
+                <div class="dropdown">
+                    <button title="Mais opções"><i class="fas fa-ellipsis-v"></i></button>
+                    <div class="dropdown-content">
+                        <button onclick="deleteNote(${index})">Excluir nota</button>
+                        <button onclick="addTag(${index})">Adicionar marcador</button>
+                        <button onclick="copyToGoogleDocs(${index})">Copiar para Google Docs</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Adicionar evento ao botão de imagem
+        const imageButton = noteElement.querySelector('button[title="Adicionar Imagem"]');
+        imageButton.onclick = () => imageButton.querySelector("input").click();
+
+        notesContainer.appendChild(noteElement);
+    });
+    console.log("Notas renderizadas:", notes.length); // Debug
 }
 
-.note p {
-    margin: 0 0 10px 0;
-    font-size: 0.95em;
-    color: #555;
+// Limpar formulário
+function resetInputs() {
+    document.getElementById("noteTitle").value = "";
+    document.getElementById("noteText").value = "";
 }
 
-.note a {
-    color: #1e90ff;
-    text-decoration: underline;
-}
-
-.note img {
-    max-width: 100%;
-    border-radius: 4px;
-    margin-top: 10px;
-}
-
-.note .tags {
-    font-size: 0.85em;
-    color: #888;
-    margin-top: 10px;
-}
-
-.note-actions {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-    opacity: 0;
-    transition: opacity 0.2s;
-}
-
-.note:hover .note-actions {
-    opacity: 1;
-}
-
-.note-actions button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1em;
-    color: #666;
-    padding: 5px;
-}
-
-.note-actions button:hover {
-    color: #333;
-}
-
-.dropdown {
-    position: relative;
-}
-
-.dropdown-content {
-    display: none;
-    position: absolute;
-    right: 0;
-    background-color: white;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    border-radius: 4px;
-    z-index: 1;
-}
-
-.dropdown-content button {
-    display: block;
-    width: 100%;
-    padding: 8px 12px;
-    text-align: left;
-    border: none;
-    background: none;
-    cursor: pointer;
-    color: #333;
-}
-
-.dropdown-content button:hover {
-    background-color: #f0f0f0;
-}
-
-.dropdown:hover .dropdown-content {
-    display: block;
-}
-
-.color-picker {
-    display: none;
-    position: absolute;
-    background: white;
-    padding: 10px;
-    border-radius: 4px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    z-index: 1;
-}
-
-.color-option {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    display: inline-block;
-    margin: 2px;
-    cursor: pointer;
-    border: 2px solid #fff;
-}
-
-.color-option:hover {
-    border-color: #888;
+// Carregar notas iniciais
+function loadNotes() {
+    renderNotes();
 }
