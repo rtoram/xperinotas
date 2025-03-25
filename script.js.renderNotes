@@ -1,0 +1,49 @@
+function renderNotes() {
+    console.log("Renderizando notas..."); // Debug
+    const notesContainer = document.getElementById("notesContainer");
+    if (!notesContainer) {
+        console.error("notesContainer não encontrado!");
+        return;
+    }
+    notesContainer.innerHTML = "";
+    const notes = getNotes();
+
+    notes.forEach((note, index) => {
+        if (note.archived) return;
+
+        const noteElement = document.createElement("div");
+        noteElement.classList.add("note");
+        noteElement.style.backgroundColor = note.color;
+
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        const contentWithLinks = note.content.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
+
+        noteElement.innerHTML = `
+            <h3>${note.title}</h3>
+            <p>${contentWithLinks}</p>
+            ${note.image ? `<img src="${note.image}" alt="Imagem da nota">` : ""}
+            ${note.reminder ? `<p><i class="fas fa-bell"></i> Lembrete: ${note.reminder}</p>` : ""}
+            ${note.tags.length ? `<p class="tags"><i class="fas fa-tag"></i> ${note.tags.join(", ")}</p>` : ""}
+            <div class="note-actions">
+                <button onclick="archiveNote(${index})" title="Arquivar"><i class="fas fa-archive"></i></button>
+                <button onclick="addReminder(${index})" title="Lembrete"><i class="fas fa-bell"></i></button>
+                <button title="Adicionar Imagem"><i class="fas fa-image"></i><input type="file" accept="image/*" onchange="addImage(${index}, this)" style="display:none;"></button>
+                <button onclick="showColorPicker(${index}, this)" title="Cor de Fundo"><i class="fas fa-palette"></i></button>
+                <div class="dropdown">
+                    <button title="Mais opções"><i class="fas fa-ellipsis-v"></i></button>
+                    <div class="dropdown-content">
+                        <button onclick="deleteNote(${index})">Excluir nota</button>
+                        <button onclick="addTag(${index})">Adicionar marcador</button>
+                        <button onclick="copyToGoogleDocs(${index})">Copiar para Google Docs</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const imageButton = noteElement.querySelector('button[title="Adicionar Imagem"]');
+        imageButton.onclick = () => imageButton.querySelector("input").click();
+
+        notesContainer.appendChild(noteElement);
+    });
+    console.log("Notas renderizadas, total:", notes.length); // Debug
+}
