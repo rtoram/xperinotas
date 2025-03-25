@@ -1,5 +1,8 @@
 // Carregar notas ao iniciar
-document.addEventListener("DOMContentLoaded", loadNotes);
+document.addEventListener("DOMContentLoaded", function() {
+    console.log("Página carregada, iniciando loadNotes...");
+    loadNotes();
+});
 
 const colors = [
     "#ffffff", "#f5f5f5", "#ffebee", "#fff3e0", "#f9fbe7",
@@ -8,12 +11,14 @@ const colors = [
 
 // Adicionar uma nova nota
 function addNote() {
+    console.log("Função addNote chamada"); // Debug
     const noteTitle = document.getElementById("noteTitle").value.trim();
     const noteText = document.getElementById("noteText").value.trim();
 
-    // Verificar se há conteúdo para adicionar
-    if (!noteText && !noteTitle) {
-        console.log("Nenhum conteúdo para adicionar.");
+    console.log("Título:", noteTitle, "Texto:", noteText); // Debug
+
+    if (!noteTitle && !noteText) {
+        console.log("Nenhum conteúdo para adicionar, saindo da função.");
         return;
     }
 
@@ -27,11 +32,14 @@ function addNote() {
         image: null,
         tags: []
     };
+
+    console.log("Nova nota criada:", newNote); // Debug
     notes.push(newNote);
+    console.log("Notas após adicionar:", notes); // Debug
     saveNotes(notes);
     renderNotes();
     resetInputs();
-    console.log("Nota adicionada:", newNote); // Debug
+    console.log("Nota adicionada e renderizada"); // Debug
 }
 
 // Excluir nota
@@ -40,7 +48,6 @@ function deleteNote(index) {
     notes.splice(index, 1);
     saveNotes(notes);
     renderNotes();
-    console.log("Nota excluída no índice:", index); // Debug
 }
 
 // Arquivar nota
@@ -49,7 +56,6 @@ function archiveNote(index) {
     notes[index].archived = true;
     saveNotes(notes);
     renderNotes();
-    console.log("Nota arquivada:", index); // Debug
 }
 
 // Adicionar lembrete
@@ -60,7 +66,6 @@ function addReminder(index) {
         notes[index].reminder = reminder;
         saveNotes(notes);
         renderNotes();
-        console.log("Lembrete adicionado:", reminder, "no índice:", index); // Debug
     }
 }
 
@@ -74,7 +79,6 @@ function addImage(index, input) {
             notes[index].image = e.target.result;
             saveNotes(notes);
             renderNotes();
-            console.log("Imagem adicionada no índice:", index); // Debug
         };
         reader.readAsDataURL(file);
     }
@@ -88,7 +92,6 @@ function addTag(index) {
         notes[index].tags.push(tag);
         saveNotes(notes);
         renderNotes();
-        console.log("Marcador adicionado:", tag, "no índice:", index); // Debug
     }
 }
 
@@ -98,7 +101,6 @@ function changeColor(index, color) {
     notes[index].color = color;
     saveNotes(notes);
     renderNotes();
-    console.log("Cor alterada para:", color, "no índice:", index); // Debug
 }
 
 // Copiar para Google Docs (simulado)
@@ -108,13 +110,12 @@ function copyToGoogleDocs(index) {
     const text = `${note.title}\n\n${note.content}`;
     navigator.clipboard.writeText(text);
     alert("Conteúdo copiado para a área de transferência! Cole em um Google Docs.");
-    console.log("Nota copiada para área de transferência:", index); // Debug
 }
 
 // Exibir seletor de cores
 function showColorPicker(index, button) {
     const existingPicker = button.parentElement.querySelector(".color-picker");
-    if (existingPicker) existingPicker.remove(); // Remove picker anterior
+    if (existingPicker) existingPicker.remove();
 
     const picker = document.createElement("div");
     picker.className = "color-picker";
@@ -129,27 +130,34 @@ function showColorPicker(index, button) {
         picker.appendChild(div);
     });
     button.parentElement.appendChild(picker);
-    console.log("Seletor de cores exibido para índice:", index); // Debug
 }
 
 // Obter notas do localStorage
 function getNotes() {
-    return JSON.parse(localStorage.getItem("notes") || "[]");
+    const notes = JSON.parse(localStorage.getItem("notes") || "[]");
+    console.log("Notas recuperadas do localStorage:", notes); // Debug
+    return notes;
 }
 
 // Salvar notas no localStorage
 function saveNotes(notes) {
+    console.log("Salvando notas no localStorage:", notes); // Debug
     localStorage.setItem("notes", JSON.stringify(notes));
 }
 
 // Renderizar notas
 function renderNotes() {
+    console.log("Renderizando notas..."); // Debug
     const notesContainer = document.getElementById("notesContainer");
+    if (!notesContainer) {
+        console.error("notesContainer não encontrado!");
+        return;
+    }
     notesContainer.innerHTML = "";
     const notes = getNotes();
 
     notes.forEach((note, index) => {
-        if (note.archived) return; // Não exibir notas arquivadas
+        if (note.archived) return;
 
         const noteElement = document.createElement("div");
         noteElement.classList.add("note");
@@ -180,19 +188,19 @@ function renderNotes() {
             </div>
         `;
 
-        // Adicionar evento ao botão de imagem
         const imageButton = noteElement.querySelector('button[title="Adicionar Imagem"]');
         imageButton.onclick = () => imageButton.querySelector("input").click();
 
         notesContainer.appendChild(noteElement);
     });
-    console.log("Notas renderizadas:", notes.length); // Debug
+    console.log("Notas renderizadas, total:", notes.length); // Debug
 }
 
 // Limpar formulário
 function resetInputs() {
     document.getElementById("noteTitle").value = "";
     document.getElementById("noteText").value = "";
+    console.log("Formulário limpo"); // Debug
 }
 
 // Carregar notas iniciais
