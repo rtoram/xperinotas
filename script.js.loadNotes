@@ -1,0 +1,8 @@
+function loadNotes() {
+    renderNotes();
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    console.log("Página carregada, iniciando loadNotes...");
+    loadNotes();
+});
