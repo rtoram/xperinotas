@@ -1,0 +1,17 @@
+function addImage(index, input) {
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const notes = getNotes();
+            if (e.target.result.length > 5000000) { // Verifique se a imagem é maior que 5MB
+                alert("Imagem muito grande, por favor, escolha uma imagem menor.");
+                return;
+            }
+            notes[index].image = e.target.result;
+            saveNotes(notes);
+            renderNotes();
+        };
+        reader.readAsDataURL(file);
+    }
+}
